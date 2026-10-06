@@ -6,12 +6,11 @@
   --layer-02: #333333;
   --layer-hover-01: #262626;
   --border-subtle: #525252;
+  --border-panel: rgba(255, 255, 255, 0.08);  /* faint edge for panels, top bar and mobile dividers */
   --border-strong: #a8a8a8;
   --text-primary: #ffffff;
   --text-secondary: #e0e0e0;
   --text-helper: #c6c6c6;
-  --text-inverse: #161616;
-  --background-inverse: #ffffff;
   --focus: #ffffff;
   --link: #ffb3b8;          /* red 30 */
   --link-hover: #ffd7d9;    /* red 20 */
@@ -49,7 +48,7 @@ h2 { margin: 0; }
 .shell-header {
   position: sticky; top: 0; z-index: 5;
   height: 48px; display: flex; align-items: center; padding: 0 16px;
-  background: rgba(0, 0, 0, 0.6); border-bottom: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.6); border-bottom: 1px solid var(--border-panel);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
 }
 .shell-name { margin: 0; font-size: 14px; font-weight: 400; letter-spacing: 0.1px; color: var(--text-primary); }
@@ -57,7 +56,7 @@ h2 { margin: 0; }
 
 
 /* Tiles (sections) */
-.card { background: var(--layer-01); border: 1px solid var(--border-subtle); padding: 16px; margin-bottom: 32px; }
+.card { background: var(--layer-01); border: 1px solid var(--border-panel); padding: 16px; margin-bottom: 32px; }
 .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 .hint { margin: 4px 0 16px; font-size: 12px; color: var(--text-helper); letter-spacing: 0.32px; }
@@ -83,14 +82,15 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 .calendar .day:hover { outline: 1px solid var(--text-secondary); outline-offset: 0; }
 .calendar .day:focus-visible, .calendar .day.selected { outline: 2px solid var(--focus); outline-offset: 0; }
 
-/* Carbon tooltip: inverse surface */
+/* Tooltip: dark surface matching the panels */
 .tooltip {
   position: fixed; z-index: 10; pointer-events: none; max-width: 288px;
-  background: var(--background-inverse); color: var(--text-inverse);
+  background: var(--layer-02); color: var(--text-primary);
+  border: 1px solid var(--border-subtle); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
   padding: 8px 16px; font-size: 12px; line-height: 1.33; letter-spacing: 0.32px;
 }
 .tooltip strong { display: block; font-weight: 600; margin-bottom: 4px; }
-.tooltip ul { margin: 0; padding-left: 16px; }
+.tooltip ul { margin: 0; padding-left: 16px; color: var(--text-secondary); }
 
 /* Filters — Carbon fields: square, bottom border, 40px tall */
 .filters { display: flex; flex-wrap: wrap; gap: 1px; margin: 0 0 16px; }
@@ -150,3 +150,17 @@ td.src a { display: block; }
 .notes ul { padding-left: 20px; }
 .notes li { margin-bottom: 8px; }
 .notes strong { color: var(--text-primary); font-weight: 600; }
+
+/* Mobile: panels melt into the page, sections separated by dividers */
+@media (max-width: 672px) {
+  .wrap { padding: 0 16px; }
+  main.wrap { padding-top: 0; }
+  .card {
+    background: transparent; border: 0; border-bottom: 1px solid var(--border-panel);
+    padding: 24px 0; margin: 0;
+  }
+  .notes { padding-top: 24px; }
+  .filters input { flex-basis: 100%; }
+  .filters select { flex: 1 1 40%; min-width: 0; }
+  .filters button.ghost { flex-basis: 100%; text-align: left; padding: 0 16px; }
+}
