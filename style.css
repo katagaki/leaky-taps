@@ -1,26 +1,27 @@
-/* IBM Carbon — Gray 100 theme tokens, red accent */
+/* IBM Carbon — Gray 100 theme tokens, red accent (stepped up for higher contrast) */
 :root {
   color-scheme: dark;
-  --background: #161616;
-  --layer-01: #262626;
-  --layer-02: #393939;
-  --layer-hover-01: #333333;
-  --border-subtle: #393939;
-  --border-strong: #6f6f6f;
-  --text-primary: #f4f4f4;
-  --text-secondary: #c6c6c6;
-  --text-helper: #a8a8a8;
+  --background: #000000;
+  --layer-01: #121212;
+  --layer-02: #333333;
+  --layer-hover-01: #262626;
+  --border-subtle: #525252;
+  --border-strong: #a8a8a8;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-helper: #c6c6c6;
   --text-inverse: #161616;
-  --background-inverse: #f4f4f4;
+  --background-inverse: #ffffff;
   --focus: #ffffff;
-  --link: #ff8389;          /* red 40 */
-  --link-hover: #ffb3b8;    /* red 30 */
-  --accent: #fa4d56;        /* red 50 */
-  --heat-0: #161616;
-  --heat-1: #520408;        /* red 90 */
-  --heat-2: #a2191f;        /* red 70 */
-  --heat-3: #fa4d56;        /* red 50 */
-  --heat-4: #ffb3b8;        /* red 30 */
+  --link: #ffb3b8;          /* red 30 */
+  --link-hover: #ffd7d9;    /* red 20 */
+  --accent: #ff8389;        /* red 40 */
+  /* GitHub-style contribution ramp: grey when empty, then deeper → more saturated red */
+  --heat-0: #262626;
+  --heat-1: #4c0c10;
+  --heat-2: #861219;
+  --heat-3: #c81a24;
+  --heat-4: #ff2e3a;
 }
 
 * { box-sizing: border-box; }
@@ -30,7 +31,12 @@ body {
   color: var(--text-primary);
   font: 14px/1.43 system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Segoe UI", sans-serif;
   letter-spacing: 0.16px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
+/* App-like: only text fields are selectable */
+input, textarea { -webkit-user-select: text; user-select: text; }
 .wrap { max-width: 1312px; margin: 0 auto; padding: 0 32px; }
 main.wrap { padding-top: 32px; }
 a { color: var(--link); text-decoration: none; }
@@ -43,14 +49,15 @@ h2 { margin: 0; }
 .shell-header {
   position: sticky; top: 0; z-index: 5;
   height: 48px; display: flex; align-items: center; padding: 0 16px;
-  background: var(--background); border-bottom: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.6); border-bottom: 1px solid var(--border-subtle);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
 }
 .shell-name { margin: 0; font-size: 14px; font-weight: 400; letter-spacing: 0.1px; color: var(--text-primary); }
 .shell-name b { font-weight: 600; color: var(--accent); }
 
 
 /* Tiles (sections) */
-.card { background: var(--layer-01); padding: 16px; margin-bottom: 32px; }
+.card { background: var(--layer-01); border: 1px solid var(--border-subtle); padding: 16px; margin-bottom: 32px; }
 .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 .hint { margin: 4px 0 16px; font-size: 12px; color: var(--text-helper); letter-spacing: 0.32px; }
@@ -71,7 +78,7 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 }
 .calendar .month-label { font-size: 12px; color: var(--text-helper); white-space: nowrap; grid-row: 1; overflow: visible; }
 .calendar .dow { font-size: 11px; color: var(--text-helper); line-height: 16px; padding-right: 4px; }
-.calendar .day { width: 16px; height: 16px; border: 0; padding: 0; cursor: pointer; }
+.calendar .day { width: 16px; height: 16px; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
 .calendar .day.empty { visibility: hidden; cursor: default; }
 .calendar .day:hover { outline: 1px solid var(--text-secondary); outline-offset: 0; }
 .calendar .day:focus-visible, .calendar .day.selected { outline: 2px solid var(--focus); outline-offset: 0; }
@@ -86,7 +93,7 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 .tooltip ul { margin: 0; padding-left: 16px; }
 
 /* Filters — Carbon fields: square, bottom border, 40px tall */
-.filters { display: flex; flex-wrap: wrap; gap: 1px; margin: 16px 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 1px; margin: 0 0 16px; }
 .filters input, .filters select {
   height: 40px; font: inherit; font-size: 14px; letter-spacing: 0.16px; color: var(--text-primary);
   background-color: var(--layer-02); border: 0; border-bottom: 1px solid var(--border-strong); border-radius: 0;
@@ -131,7 +138,7 @@ td.info { min-width: 240px; }
 td.cause { white-space: nowrap; }
 .tag {
   display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 12px;
-  font-size: 12px; letter-spacing: 0.32px; background: var(--layer-02); color: #e0e0e0;
+  font-size: 12px; letter-spacing: 0.32px; background: var(--layer-02); color: var(--text-primary); border: 1px solid var(--border-subtle);
 }
 td.src { white-space: nowrap; }
 td.src a { display: block; }

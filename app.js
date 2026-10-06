@@ -187,9 +187,6 @@
       ? list.map(rowHTML).join("")
       : `<tr class="empty-row"><td colspan="6">条件に一致する事案はありません。</td></tr>`;
 
-    const sum = list.reduce((s, r) => s + (r.n || 0), 0);
-    $("#row-count").textContent = `${state.day ? `${fmtDate(state.day)}　` : ""}${fmt(rows.length)}件中${fmt(list.length)}件 · 公表件数の合計 ${compact(sum)}`;
-
     document.querySelectorAll("thead button[data-sort]").forEach((btn) => {
       const active = btn.dataset.sort === state.sortKey;
       btn.querySelector(".arrow").textContent = active ? (state.sortDir === 1 ? "▲" : "▼") : "";
