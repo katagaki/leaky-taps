@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>毎日漏洩</title>
+  <meta name="description" content="2026年4月6日〜10月6日に日本の企業・団体が公表した情報漏えいの一覧。影響件数、漏えいした情報、報道へのリンク。">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="shell-header">
+    <h1 class="shell-name"><b>毎日</b>漏洩</h1>
+  </header>
+
+  <main class="wrap">
+    <section class="card" aria-labelledby="cal-title">
+      <div class="card-head">
+        <h2 id="cal-title">日別の公表件数</h2>
+        <div class="legend" aria-hidden="true">
+          <span>0</span><i class="lv0"></i><i class="lv1"></i><i class="lv2"></i><i class="lv3"></i><i class="lv4"></i><span>5+</span>
+        </div>
+      </div>
+      <p class="hint">日付をクリックすると表を絞り込みます。もう一度クリックすると解除します。</p>
+      <div class="calendar-scroll"><div id="calendar" class="calendar" role="grid" aria-label="日別の公表件数カレンダー"></div></div>
+    </section>
+
+    <section class="card" aria-labelledby="table-title">
+      <div class="card-head">
+        <h2 id="table-title">漏えい一覧</h2>
+        <span class="muted" id="row-count"></span>
+      </div>
+      <div class="filters">
+        <input id="q" type="search" placeholder="組織名・情報の種類で検索…" aria-label="検索">
+        <select id="f-month" aria-label="月"><option value="">すべての月</option></select>
+        <select id="f-cause" aria-label="原因"><option value="">すべての原因</option></select>
+        <select id="f-size" aria-label="規模">
+          <option value="">すべての規模</option>
+          <option value="1000000">100万件以上</option>
+          <option value="100000">10万件以上</option>
+          <option value="10000">1万件以上</option>
+          <option value="known">件数公表あり</option>
+          <option value="unknown">件数非公表</option>
+        </select>
+        <button id="clear" class="ghost" type="button">絞り込みを解除</button>
+      </div>
+      <div class="table-scroll">
+        <table id="leaks">
+          <thead>
+            <tr>
+              <th scope="col"><button data-sort="d" type="button">公表日 <span class="arrow"></span></button></th>
+              <th scope="col"><button data-sort="ja" type="button">組織 <span class="arrow"></span></button></th>
+              <th scope="col" class="num"><button data-sort="n" type="button">件数 <span class="arrow"></span></button></th>
+              <th scope="col">漏えいした情報</th>
+              <th scope="col"><button data-sort="cause" type="button">原因 <span class="arrow"></span></button></th>
+              <th scope="col">出典</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>データについて</h2>
+      <ul>
+        <li><strong>公表日</strong>は最初に公表された日、または影響件数が初めて判明した日です。続報は1行にまとめ、最新の件数を表示しています。</li>
+        <li><strong>件数</strong>は公表された数値をそのまま記載しています。単位は人・アカウント・件・メール・ファイルなどさまざまで、多くは「漏えいの可能性がある」最大値です。件数が非公表の行も一覧に含めていますが、合計には含みません。</li>
+        <li>以前の攻撃による漏えいでも、影響範囲がこの期間に初めて公表されたものは含めています（コタ、メディカ出版、アサヒグループなど）。2025年の事案に関する逮捕や行政処分のニュースは含めていません。</li>
+        <li>出典は主にセキュリティ対策Lab（rocket-boys.co.jp）、ITmedia、日本経済新聞、Impress Watch、cybersecurity-jp.com、piyolog、UNITIS、Gate02、および各社のお知らせです。</li>
+      </ul>
+      <p class="muted">2026年10月6日時点。すべての事案を網羅しているわけではありません。メールの誤送信1件などの小規模な事案は報道されないことが多くあります。</p>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+  <script src="leaks.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
