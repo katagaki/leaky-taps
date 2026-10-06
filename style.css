@@ -36,6 +36,9 @@ body {
 }
 /* App-like: only text fields are selectable */
 input, textarea { -webkit-user-select: text; user-select: text; }
+/* App-like: arrow cursor everywhere (no hand on links/buttons, no I-beam over text); text fields keep the I-beam */
+body, a, button, select, label, summary, thead th button { cursor: default; }
+input, textarea { cursor: text; }
 .wrap { max-width: 1312px; margin: 0 auto; padding: 0 32px; }
 main.wrap { padding-top: 32px; }
 a { color: var(--link); text-decoration: none; }
@@ -77,8 +80,8 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 }
 .calendar .month-label { font-size: 12px; color: var(--text-helper); white-space: nowrap; grid-row: 1; overflow: visible; }
 .calendar .dow { font-size: 11px; color: var(--text-helper); line-height: 16px; padding-right: 4px; }
-.calendar .day { width: 16px; height: 16px; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
-.calendar .day.empty { visibility: hidden; cursor: default; }
+.calendar .day { width: 16px; height: 16px; border: 0; padding: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
+.calendar .day.empty { visibility: hidden; }
 .calendar .day:hover { outline: 1px solid var(--text-secondary); outline-offset: 0; }
 .calendar .day:focus-visible, .calendar .day.selected { outline: 2px solid var(--focus); outline-offset: 0; }
 
@@ -100,7 +103,7 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
   padding: 0 16px; outline: 2px solid transparent; outline-offset: -2px;
 }
 .filters select {
-  padding-right: 40px; appearance: none; cursor: pointer;
+  padding-right: 40px; appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23f4f4f4' d='M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 12px center;
 }
@@ -109,7 +112,7 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
 .filters input:focus, .filters select:focus { outline-color: var(--focus); }
 button.ghost {
   height: 40px; font: inherit; font-size: 14px; letter-spacing: 0.16px; color: var(--link);
-  background: transparent; border: 0; border-radius: 0; padding: 0 16px; cursor: pointer;
+  background: transparent; border: 0; border-radius: 0; padding: 0 16px;
 }
 button.ghost:hover { background: var(--layer-hover-01); color: var(--link-hover); }
 button.ghost:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
@@ -122,7 +125,7 @@ thead th {
   font-size: 14px; font-weight: 600; color: var(--text-primary);
   height: 48px; padding: 0 16px; white-space: nowrap;
 }
-thead th button { all: unset; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; height: 48px; }
+thead th button { all: unset; display: inline-flex; gap: 8px; align-items: center; height: 48px; }
 thead th button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .arrow { color: var(--accent); font-size: 10px; }
 tbody td { border-top: 1px solid var(--border-subtle); padding: 14px 16px; vertical-align: top; color: var(--text-secondary); }
