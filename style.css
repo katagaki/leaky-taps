@@ -56,6 +56,8 @@ h2 { margin: 0; }
 }
 .shell-name { margin: 0; font-size: 14px; font-weight: 400; letter-spacing: 0.1px; color: var(--text-primary); }
 .shell-name b { font-weight: 600; color: var(--accent); }
+.shell-link { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--text-helper); }
+.shell-link:hover { color: var(--text-primary); text-decoration: none; }
 
 
 /* Tiles (sections) */
