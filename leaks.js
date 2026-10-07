@@ -1,4 +1,4 @@
-// 2026-04-06〜2026-10-06 に日本の組織が公表した情報漏えい。
+// 2026-04-06〜2026-10-07 に日本の組織が公表した情報漏えい。
 // d     = 初回公表日（または件数が初めて判明した日）YYYY-MM-DD
 // ja/en = 組織名（日本語／英語）
 // n     = 影響件数（数値。非公表は null）
@@ -7,6 +7,13 @@
 // src   = 報道・発表のURL。"rb:" はセキュリティ対策Lab（rocket-boys.co.jp）の記事パス
 const LEAKS = [
   // ── 2026年10月 ────────────────────────────────────────
+  {"d": "2026-10-06", "ja": "ミスターマックス", "en": "Mr Max", "n": 1735154, "nl": "最大1,735,154人", "info": "MrMaxアプリ・オンラインストア会員の会員ID、氏名、メールアドレス、電話番号", "cause": "不正アクセス", "src": ["https://www.mrmax.co.jp/info/incident_20261006/", "rb:mrmax-data-breach-20261006/"]},
+  {"d": "2026-10-06", "ja": "旭化成セラピューティクス", "en": "Asahi Kasei Therapeutics", "n": 514000, "nl": "約51万4,000名", "info": "委託先が運営する医療関係者向けサイト「Pharma DIGITAL」会員の氏名・所属施設等、従業員約700名の情報", "cause": "委託先・サプライチェーン", "src": ["https://www.asahi-kasei.co.jp/pharma/oshirase_20261006.html", "https://answers.and-pro.jp/pharmanews/33303/"]},
+  {"d": "2026-10-06", "ja": "アクティブ", "en": "Active Co., Ltd.", "n": 54916, "nl": "最大54,916件", "info": "SQLインジェクションによりECサイト顧客の住所、電話番号、メールアドレス、注文情報", "cause": "不正アクセス", "src": ["https://www.active-pro.jp/news/4303/", "rb:active-pro-sql-injection-data-breach-20261007/"]},
+  {"d": "2026-10-06", "ja": "気象キャスターネットワーク", "en": "Weather Caster Network (NPO)", "n": 15959, "nl": "最大15,959件", "info": "入会登録・催事申込・問合せフォームの氏名、メールアドレス等", "cause": "不正アクセス", "src": ["https://weathercaster.jp/notices/20261006_notice.pdf", "rb:weathercaster-network-website-unauthorized-access-data-leak-20261007/"]},
+  {"d": "2026-10-06", "ja": "山口大学", "en": "Yamaguchi University", "n": 967, "nl": "967件", "info": "フィッシングで乗っ取られた職員メールアカウントの連絡先", "cause": "フィッシング・乗っ取り", "src": ["https://www.yamaguchi-u.ac.jp/news/52728/index.html"]},
+  {"d": "2026-10-06", "ja": "エバーグリーン・マーケティング", "en": "Evergreen Marketing", "n": 1000, "nl": "1,000件", "info": "取引先のメールアドレス、法人電力顧客の住所・口座・請求情報", "cause": "フィッシング・乗っ取り", "src": ["https://www.egmkt.co.jp/newsroom/news/2026/10982/", "rb:evergreen-marketing-email-account-unauthorized-access/"]},
+  {"d": "2026-10-06", "ja": "小池酸素工業", "en": "Koike Sanso Kogyo", "n": null, "nl": "調査中", "info": "サイバー攻撃の可能性を公表。情報漏えいの範囲を調査中", "cause": "不正アクセス", "src": ["https://koike-japan.com/pages/1?detail=1&b_id=206&r_id=522", "rb:koike-sanso-cyberattack-investigation/"]},
   {"d": "2026-10-06", "ja": "シチズン時計／スカラコミュニケーションズ", "en": "Citizen Watch (via contractor Scala Communications)", "n": 100000, "nl": "約10万人", "info": "委託先が保有する顧客の個人情報", "cause": "委託先・サプライチェーン", "src": ["rb:citizen-scala-communications-data-breach-20261006/", "https://www.47news.jp/15044694.html"]},
   {"d": "2026-10-06", "ja": "楽天ドライブ", "en": "Rakuten Drive", "n": 15382, "nl": "15,382アカウント", "info": "アカウント情報", "cause": "不正アクセス", "src": ["rb:rakuten-drive-unauthorized-access-15382-accounts-20261006/"]},
   {"d": "2026-10-06", "ja": "グリーンコープ生協ふくおか", "en": "Greencoop Fukuoka", "n": 33526, "nl": "33,526人", "info": "業務用PCに保存された組合員の個人情報", "cause": "紛失・盗難", "src": ["rb:greencoop-fukuoka-pc-theft-personal-data-33526/"]},
