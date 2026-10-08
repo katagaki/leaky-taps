@@ -173,7 +173,7 @@
     const sources = r.src.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(hostLabel(u))} ↗</a>`).join("");
     return `<tr>
       <td class="date">${fmtDate(r.d)}</td>
-      <td class="org">${esc(r.ja)}<span class="sub" lang="en">${esc(r.en)}</span></td>
+      <td class="org">${esc(r.ja)}</td>
       <td class="num">${records}</td>
       <td class="info">${esc(r.info)}</td>
       <td class="cause"><span class="tag">${esc(r.cause)}</span></td>
