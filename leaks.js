@@ -1,4 +1,4 @@
-// 2026-04-06〜2026-10-07 に日本の組織が公表した情報漏えい。
+// 2026-04-06〜2026-10-08 に日本の組織が公表した情報漏えい。
 // d     = 初回公表日（または件数が初めて判明した日）YYYY-MM-DD
 // ja/en = 組織名（日本語／英語）
 // n     = 影響件数（数値。非公表は null）
@@ -7,6 +7,7 @@
 // src   = 報道・発表のURL。"rb:" はセキュリティ対策Lab（rocket-boys.co.jp）の記事パス
 const LEAKS = [
   // ── 2026年10月 ────────────────────────────────────────
+  {"d": "2026-10-08", "ja": "小平市", "en": "Kodaira City", "n": null, "nl": "調査中", "info": "HP保守委託先のクラウド基盤がランサムウェア攻撃を受け市HPが閲覧不能。問合せフォームの氏名・住所・電話番号が漏えいのおそれ", "cause": "ランサムウェア", "src": ["rb:kodaira_city_website_ransomware/", "https://news.yahoo.co.jp/articles/29a5475e9889fdbc8580dc101f5b6db885d28cb8"]},
   {"d": "2026-10-07", "ja": "IDCフロンティア（IDCFクラウド）", "en": "IDC Frontier (IDCF Cloud)", "n": null, "nl": "契約495社・自治体に影響（漏えい調査中）", "info": "東日本リージョン1がランサムウェア攻撃を受けシステム停止。下流のSaaSにも障害", "cause": "ランサムウェア", "src": ["https://www.idcf.jp/news/topics/20261007001", "https://www.idcf.jp/news/topics/20261007002", "rb:idcf-cloud-unauthorized-access-east-japan-region1/", "rb:idcf-cloud-outage-affected-services-2026/"]},
   {"d": "2026-10-07", "ja": "ニッスイ（日水物流）", "en": "Nissui (Nissui Logistics)", "n": null, "nl": "調査中", "info": "委託先データセンターへの不正アクセスで日水物流の入出庫業務が停止。個人情報・顧客データの流出を調査中", "cause": "委託先・サプライチェーン", "src": ["https://www.nissui.co.jp/news/2026100702.html"]},
   {"d": "2026-10-07", "ja": "エイチ・アイ・エス（タイ現地法人）", "en": "H.I.S. (Thailand subsidiary)", "n": 627, "nl": "最大627名", "info": "タイ子会社のファイルサーバーからパスポート情報・アレルギー情報が持ち出された可能性", "cause": "不正アクセス", "src": ["https://www.his.co.jp/assets/20261007.pdf", "rb:his-thailand-databreach/"]},
