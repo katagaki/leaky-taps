@@ -7,6 +7,7 @@
 // src   = 報道・発表のURL。"rb:" はセキュリティ対策Lab（rocket-boys.co.jp）の記事パス
 const LEAKS = [
   // ── 2026年10月 ────────────────────────────────────────
+  {"d": "2026-10-08", "ja": "ローソン（ローソンID）", "en": "Lawson (Lawson ID)", "n": 2155000, "nl": "約215万5千件", "info": "アカウントサービス「ローソンID」利用者の個人情報", "cause": "不正アクセス", "src": ["https://www.47news.jp/15055808.html", "https://www.shimotsuke.co.jp/articles/-/1437019"]},
   {"d": "2026-10-08", "ja": "小平市", "en": "Kodaira City", "n": null, "nl": "調査中", "info": "HP保守委託先のクラウド基盤がランサムウェア攻撃を受け市HPが閲覧不能。問合せフォームの氏名・住所・電話番号が漏えいのおそれ", "cause": "ランサムウェア", "src": ["rb:kodaira_city_website_ransomware/", "https://news.yahoo.co.jp/articles/29a5475e9889fdbc8580dc101f5b6db885d28cb8"]},
   {"d": "2026-10-07", "ja": "IDCフロンティア（IDCFクラウド）", "en": "IDC Frontier (IDCF Cloud)", "n": null, "nl": "契約495社・自治体に影響（漏えい調査中）", "info": "東日本リージョン1がランサムウェア攻撃を受けシステム停止。下流のSaaSにも障害", "cause": "ランサムウェア", "src": ["https://www.idcf.jp/news/topics/20261007001", "https://www.idcf.jp/news/topics/20261007002", "rb:idcf-cloud-unauthorized-access-east-japan-region1/", "rb:idcf-cloud-outage-affected-services-2026/"]},
   {"d": "2026-10-07", "ja": "ニッスイ（日水物流）", "en": "Nissui (Nissui Logistics)", "n": null, "nl": "調査中", "info": "委託先データセンターへの不正アクセスで日水物流の入出庫業務が停止。個人情報・顧客データの流出を調査中", "cause": "委託先・サプライチェーン", "src": ["https://www.nissui.co.jp/news/2026100702.html"]},
