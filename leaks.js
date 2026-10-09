@@ -1,4 +1,4 @@
-// 2026-04-06〜2026-10-08 に日本の組織が公表した情報漏えい。
+// 2026-04-06〜2026-10-09 に日本の組織が公表した情報漏えい。
 // d     = 初回公表日（または件数が初めて判明した日）YYYY-MM-DD
 // ja/en = 組織名（日本語／英語）
 // n     = 影響件数（数値。非公表は null）
@@ -7,6 +7,7 @@
 // src   = 報道・発表のURL。"rb:" はセキュリティ対策Lab（rocket-boys.co.jp）の記事パス
 const LEAKS = [
   // ── 2026年10月 ────────────────────────────────────────
+  {"d": "2026-10-09", "ja": "ブックオフグループホールディングス", "en": "BOOKOFF Group Holdings", "n": 6430000, "nl": "最大約643万件（会員番号数）", "info": "子会社の会員管理システムへの不正アクセスで氏名・生年月日・性別・メール・電話番号・住所・パスワードのハッシュ値・ポイントカード番号・会員番号が外部に流出", "cause": "不正アクセス", "src": ["https://ssl4.eir-parts.net/doc/9278/tdnet/2893077/00.pdf", "https://www.bookoffgroup.co.jp/news/"]},
   {"d": "2026-10-08", "ja": "ローソン（ローソンID）", "en": "Lawson (Lawson ID)", "n": 2155000, "nl": "約215万5千件", "info": "アカウントサービス「ローソンID」利用者の個人情報", "cause": "不正アクセス", "src": ["https://www.47news.jp/15055808.html", "https://www.shimotsuke.co.jp/articles/-/1437019"]},
   {"d": "2026-10-08", "ja": "小平市", "en": "Kodaira City", "n": null, "nl": "調査中", "info": "HP保守委託先のクラウド基盤がランサムウェア攻撃を受け市HPが閲覧不能。問合せフォームの氏名・住所・電話番号が漏えいのおそれ", "cause": "ランサムウェア", "src": ["rb:kodaira_city_website_ransomware/", "https://news.yahoo.co.jp/articles/29a5475e9889fdbc8580dc101f5b6db885d28cb8"]},
   {"d": "2026-10-08", "ja": "第一興商", "en": "Daiichi Kosho", "n": 8724000, "nl": "約872万4,000件", "info": "委託先（日本コロムビアグループ）従業員PCのマルウェア感染で、ビッグエコー等の会員・予約顧客と従業員の氏名・生年月日・メール・電話番号", "cause": "委託先・サプライチェーン", "src": ["https://www.dkkaraoke.co.jp/news/newsletter/261008_2.html", "rb:daiichikosho_columbia_malware_8724000_data_breach_risk/", "https://www.47news.jp/15055818.html"]},
@@ -373,6 +374,7 @@ const LEAKS = [
   {"d": "2026-04-08", "ja": "住友金属鉱山（フィリピン子会社CBNC）", "en": "Sumitomo Metal Mining (Coral Bay Nickel, Philippines)", "n": null, "nl": "調査中", "info": "フィリピンの製錬子会社でサーバ2台がランサムウェアで暗号化。影響範囲を調査中", "cause": "ランサムウェア", "src": ["rb:sumitomo-metal-overseas-subsidiary-ransomware-2/", "https://scan.netsecurity.ne.jp/article/2026/04/15/55066.html", "https://cybersecurity-jp.com/news/113114"]},
   {"d": "2026-04-07", "ja": "村田製作所", "en": "Murata Manufacturing", "n": 88000, "nl": "約8.8万件", "info": "従業員・顧客・取引先の連絡先", "cause": "不正アクセス", "src": ["rb:murata-unauthorized-access-data-leak-risk/", "rb:murata-manufacturing-88k-data-leak-unauthorized-access/"]},
   {"d": "2026-04-07", "ja": "GMOあおぞらネット銀行", "en": "GMO Aozora Net Bank", "n": null, "nl": "非公表", "info": "委託先のミスで顧客情報", "cause": "委託先・サプライチェーン", "src": ["rb:gmo-aozora-vendor-error-data-leak-risk/"]},
+  {"d": "2026-04-07", "ja": "ブックオフグループホールディングス", "en": "BOOKOFF Group Holdings (development contractor)", "n": null, "nl": "非公表", "info": "システム開発・運用の委託先の開発環境がランサムウェア「Trinity」に感染。感染端末に顧客の氏名・住所・電話番号・メール・配送先が含まれていた可能性（第二報）", "cause": "ランサムウェア", "src": ["https://ssl4.eir-parts.net/doc/9278/ir_material10/276510/00.pdf", "https://ssl4.eir-parts.net/doc/9278/ir_material10/277631/00.pdf"]},
   {"d": "2026-04-06", "ja": "トーホー", "en": "TOHO Co., Ltd. (food distributor)", "n": 1, "nl": "従業員1アカウント", "info": "従業員のメールボックスから不審メール送信", "cause": "フィッシング・乗っ取り", "src": ["https://unitis.jp/articles/21930/"]},
   {"d": "2026-04-06", "ja": "阿波銀行", "en": "Awa Bank", "n": 27745, "nl": "顧客27,745人", "info": "テスト環境のOAシステム内の顧客情報", "cause": "不正アクセス", "src": ["rb:awa-bank-test-env-unauth-access-27k-data-leak/"]},
   {"d": "2026-04-06", "ja": "あなぶきハウジングサービス", "en": "Anabuki Housing Service", "n": 207773, "nl": "207,773件", "info": "顧客・入居者の氏名、住所、電話番号", "cause": "ランサムウェア", "src": ["rb:anabuki-housing-cyberattack-210k-file-leak/", "rb:anabuki-housing-ransomware-207773-records-leaked/"]},
