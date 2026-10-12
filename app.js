@@ -166,10 +166,41 @@
     return (cmp || b.d.localeCompare(a.d)) * (cmp ? dir : 1);
   }
 
+  // ── Record type (Carbon icon) ───────────────────────────────
+  const TYPES = {
+    person: ["user", "人"],
+    account: ["user--avatar", "アカウント"],
+    member: ["identification", "会員"],
+    email: ["email", "メール"],
+    file: ["document", "ファイル"],
+    card: ["purchase", "カード・口座"],
+    org: ["enterprise", "組織"],
+    record: ["data--base", "件"],
+    unknown: ["help", "非公表"],
+  };
+  // The first number's unit decides the type; "件" is refined by what is being counted.
+  function recordType(r) {
+    if (r.n == null) return "unknown";
+    const unit = (r.nl.match(/[\d.,]+[万千億]*(人|名|アカウント|ユーザー|通|ファイル|TB|GB|社|先|事業者|件)/) || [])[1];
+    if (unit === "人" || unit === "名") return "person";
+    if (unit === "アカウント" || unit === "ユーザー") return "account";
+    if (unit === "通") return "email";
+    if (unit === "ファイル" || unit === "TB" || unit === "GB") return "file";
+    if (unit === "社" || unit === "先" || unit === "事業者") return "org";
+    if (/会員/.test(r.nl)) return "member";
+    if (/カード|口座/.test(r.nl)) return "card";
+    if (/メール/.test(r.nl)) return "email";
+    if (/文書|資料/.test(r.nl)) return "file";
+    return "record";
+  }
+
   function rowHTML(r) {
-    const records = r.n != null
-      ? `${fmt(r.n)}<span class="label">${esc(r.nl)}</span>`
-      : `<span class="undisclosed">${esc(r.nl)}</span>`;
+    const [icon, typeLabel] = TYPES[recordType(r)];
+    const records = `<div class="count">
+        <span class="icon" style="--icon: url(img/${icon}.svg)" role="img" aria-label="${typeLabel}" title="${typeLabel}"></span>
+        ${r.n != null ? `<span class="value">${fmt(r.n)}</span>` : ""}
+        <span class="${r.n != null ? "label" : "undisclosed"}">${esc(r.nl)}</span>
+      </div>`;
     const sources = r.src.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(hostLabel(u))} ↗</a>`).join("");
     return `<tr>
       <td class="date">${fmtDate(r.d)}</td>
