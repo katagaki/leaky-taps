@@ -148,13 +148,13 @@ td.num .icon {
   -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
 }
 td.num .value { font-size: 16px; font-weight: 600; line-height: 1.25; white-space: nowrap; }
-td.num .type { font-size: 12px; color: var(--text-secondary); letter-spacing: 0.32px; }
+td.num .type { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; color: var(--text-secondary); letter-spacing: 0.32px; }
 td.num .info-btn {
   all: unset; cursor: pointer; display: inline-grid; place-items: center; width: 32px; height: 32px; margin: 4px 0 0 -8px;
 }
 td.num .info-btn .icon { width: 16px; height: 16px; background-color: var(--text-helper); }
 td.num .info-btn:hover .icon, td.num .info-btn:focus-visible .icon { background-color: var(--text-primary); }
-td.num .info-btn.small { width: 20px; height: 20px; margin: 0 -4px 0 0; vertical-align: -5px; }
+td.num .info-btn.small { width: 16px; height: 16px; margin: 0; }
 td.num .info-btn.small .icon { width: 14px; height: 14px; }
 td.num .info-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 td.num .label { display: block; margin: 8px 0 0; font-size: 12px; color: var(--text-helper); max-width: 200px; letter-spacing: 0.32px; }
