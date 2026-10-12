@@ -245,12 +245,18 @@
     return `<div class="tiles${parts.length > 1 ? " multi" : ""}">${tiles}</div>${caption}${infoButton(r.info)}`;
   }
 
+  // "Name（detail）" puts the detail on its own line.
+  function orgHTML(ja) {
+    const m = ja.match(/^(.+?)（(.+)）$/);
+    return m ? `${esc(m[1])}<span class="sub">（${esc(m[2])}）</span>` : esc(ja);
+  }
+
   function rowHTML(r) {
     const records = recordTiles(r);
     const sources = r.src.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(hostLabel(u))} ↗</a>`).join("");
     return `<tr>
       <td class="date">${fmtDate(r.d)}</td>
-      <td class="org">${esc(r.ja)}</td>
+      <td class="org">${orgHTML(r.ja)}</td>
       <td class="num">${records}</td>
       <td class="cause"><span class="tag">${esc(r.cause)}</span></td>
       <td class="src">${sources}</td>

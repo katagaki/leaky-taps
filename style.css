@@ -134,6 +134,7 @@ tbody td { border-top: 1px solid var(--border-subtle); padding: 14px 16px; verti
 tbody tr:hover td { background: var(--layer-hover-01); color: var(--text-primary); }
 td.date { white-space: nowrap; font-variant-numeric: tabular-nums; }
 td.org { min-width: 200px; color: var(--text-primary); }
+td.org .sub { display: block; font-size: 12px; color: var(--text-helper); letter-spacing: 0.32px; }
 th.num, td.num { text-align: left; }
 td.num { padding-left: 8px; padding-right: 8px; font-variant-numeric: tabular-nums; color: var(--text-primary); }
 td.num .tiles { display: grid; grid-template-columns: minmax(120px, 160px); justify-content: start; gap: 2px; }
