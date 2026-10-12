@@ -87,8 +87,12 @@
     const names = list.slice(0, 8).map((r) => `<li>${esc(r.ja)}${r.n != null ? `（${compact(r.n)}）` : ""}</li>`).join("");
     const more = list.length > 8 ? `<li>ほか${list.length - 8}件</li>` : "";
     tip.innerHTML = `<strong>${fmtDate(iso)}：${list.length}件</strong>${list.length ? `<ul>${names}${more}</ul>` : ""}`;
+    placeTip(cell);
+  }
+
+  function placeTip(anchor) {
     tip.hidden = false;
-    const r = cell.getBoundingClientRect();
+    const r = anchor.getBoundingClientRect();
     const tw = tip.offsetWidth, th = tip.offsetHeight;
     let x = r.left + r.width / 2 - tw / 2;
     x = Math.max(8, Math.min(x, innerWidth - tw - 8));
@@ -102,6 +106,20 @@
   cal.addEventListener("mouseleave", () => { tip.hidden = true; });
   cal.addEventListener("focusin", (e) => { const c = e.target.closest(".day[data-date]"); if (c) showTip(c); });
   cal.addEventListener("focusout", () => { tip.hidden = true; });
+  // ── Leaked-info tooltip on the (i) button ───────────────────
+  const tbody = $("#leaks tbody");
+  const showInfo = (btn) => { tip.textContent = btn.dataset.info; placeTip(btn); };
+  tbody.addEventListener("mouseover", (e) => { const b = e.target.closest(".info-btn"); if (b) showInfo(b); });
+  tbody.addEventListener("mouseout", (e) => { if (e.target.closest(".info-btn")) tip.hidden = true; });
+  tbody.addEventListener("focusin", (e) => { const b = e.target.closest(".info-btn"); if (b) showInfo(b); });
+  tbody.addEventListener("focusout", () => { tip.hidden = true; });
+  // Touch has no hover: tapping shows it, tapping anywhere else hides it.
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".info-btn");
+    if (b) showInfo(b); else if (!e.target.closest(".day[data-date]")) tip.hidden = true;
+  });
+  addEventListener("scroll", () => { tip.hidden = true; }, { passive: true });
+
   cal.addEventListener("click", (e) => {
     const c = e.target.closest(".day[data-date]");
     if (!c) return;
@@ -209,11 +227,15 @@
       </div>`;
   }
 
+  function infoButton(r) {
+    return `<button class="info-btn" type="button" data-info="${esc(r.info)}" aria-label="漏えいした情報：${esc(r.info)}"><span class="icon" style="--icon: url(img/information.svg)"></span></button>`;
+  }
+
   function recordTiles(r) {
-    if (!r.k && r.n == null) return `<div class="tiles">${tile("unknown", null, r.nl)}</div>`;
+    if (!r.k && r.n == null) return `<div class="tiles">${tile("unknown", null, r.nl)}</div>${infoButton(r)}`;
     const parts = r.k || [[recordType(r), r.n]];
     const tiles = parts.map(([type, n, label]) => tile(type, n, label)).join("");
-    return `<div class="tiles${parts.length > 1 ? " multi" : ""}">${tiles}</div><span class="label">${esc(r.nl)}</span>`;
+    return `<div class="tiles${parts.length > 1 ? " multi" : ""}">${tiles}</div><span class="label">${esc(r.nl)}</span>${infoButton(r)}`;
   }
 
   function rowHTML(r) {
@@ -223,7 +245,6 @@
       <td class="date">${fmtDate(r.d)}</td>
       <td class="org">${esc(r.ja)}</td>
       <td class="num">${records}</td>
-      <td class="info">${esc(r.info)}</td>
       <td class="cause"><span class="tag">${esc(r.cause)}</span></td>
       <td class="src">${sources}</td>
     </tr>`;
@@ -233,7 +254,7 @@
     const list = rows.filter(matches).sort(compare);
     $("#leaks tbody").innerHTML = list.length
       ? list.map(rowHTML).join("")
-      : `<tr class="empty-row"><td colspan="6">条件に一致する事案はありません。</td></tr>`;
+      : `<tr class="empty-row"><td colspan="5">条件に一致する事案はありません。</td></tr>`;
 
     document.querySelectorAll("thead button[data-sort]").forEach((btn) => {
       const active = btn.dataset.sort === state.sortKey;
