@@ -171,9 +171,14 @@
     person: ["user", "人"],
     account: ["user--avatar", "アカウント"],
     member: ["identification", "会員"],
-    email: ["email", "メール"],
+    email: ["email", "メールアドレス"],
     file: ["document", "ファイル"],
-    card: ["purchase", "カード・口座"],
+    image: ["image", "画像"],
+    card: ["purchase", "カード"],
+    bank: ["finance", "口座情報"],
+    password: ["password", "パスワード"],
+    id: ["identification", "本人確認書類"],
+    address: ["location", "住所"],
     org: ["enterprise", "組織"],
     record: ["data--base", "件"],
     unknown: ["help", "非公表"],
@@ -188,19 +193,31 @@
     if (unit === "ファイル" || unit === "TB" || unit === "GB") return "file";
     if (unit === "社" || unit === "先" || unit === "事業者") return "org";
     if (/会員/.test(r.nl)) return "member";
-    if (/カード|口座/.test(r.nl)) return "card";
+    if (/カード/.test(r.nl)) return "card";
+    if (/口座/.test(r.nl)) return "bank";
     if (/メール/.test(r.nl)) return "email";
     if (/文書|資料/.test(r.nl)) return "file";
     return "record";
   }
 
-  function rowHTML(r) {
-    const [icon, typeLabel] = TYPES[recordType(r)];
-    const records = `<div class="count">
-        <span class="icon" style="--icon: url(img/${icon}.svg)" role="img" aria-label="${typeLabel}" title="${typeLabel}"></span>
-        ${r.n != null ? `<span class="value">${fmt(r.n)}</span>` : ""}
-        <span class="${r.n != null ? "label" : "undisclosed"}">${esc(r.nl)}</span>
+  function tile(type, n, label) {
+    const [icon, typeLabel] = TYPES[type];
+    return `<div class="tile">
+        <span class="icon" style="--icon: url(img/${icon}.svg)" aria-hidden="true"></span>
+        ${n != null ? `<span class="value">${fmt(n)}</span>` : ""}
+        <span class="type">${esc(label || typeLabel)}</span>
       </div>`;
+  }
+
+  function recordTiles(r) {
+    if (!r.k && r.n == null) return `<div class="tiles">${tile("unknown", null, r.nl)}</div>`;
+    const parts = r.k || [[recordType(r), r.n]];
+    const tiles = parts.map(([type, n, label]) => tile(type, n, label)).join("");
+    return `<div class="tiles${parts.length > 1 ? " multi" : ""}">${tiles}</div><span class="label">${esc(r.nl)}</span>`;
+  }
+
+  function rowHTML(r) {
+    const records = recordTiles(r);
     const sources = r.src.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(hostLabel(u))} ↗</a>`).join("");
     return `<tr>
       <td class="date">${fmtDate(r.d)}</td>

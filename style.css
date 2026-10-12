@@ -133,18 +133,24 @@ thead th button:focus-visible { outline: 2px solid var(--focus); outline-offset:
 tbody td { border-top: 1px solid var(--border-subtle); padding: 14px 16px; vertical-align: top; color: var(--text-secondary); }
 tbody tr:hover td { background: var(--layer-hover-01); color: var(--text-primary); }
 td.date { white-space: nowrap; font-variant-numeric: tabular-nums; }
-td.org { min-width: 200px; color: var(--text-primary); }
-th.num, td.num { text-align: right; }
-td.num { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-primary); }
-td.num .count { display: grid; justify-items: end; row-gap: 4px; }
+td.org { min-width: 176px; color: var(--text-primary); }
+th.num, td.num { text-align: center; }
+td.num { padding-left: 8px; padding-right: 8px; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+td.num .tiles { display: grid; grid-template-columns: minmax(100px, 132px); justify-content: center; gap: 2px; }
+td.num .tiles.multi { grid-template-columns: repeat(2, 100px); }
+td.num .tile {
+  display: grid; justify-items: center; align-content: start; row-gap: 4px;
+  padding: 12px 4px; background: var(--layer-hover-01);
+}
+tbody tr:hover td.num .tile { background: var(--layer-02); }
 td.num .icon {
   width: 20px; height: 20px; background-color: var(--accent);
   -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
 }
-td.num .value { font-size: 16px; font-weight: 600; line-height: 1.25; }
-td.num .label { font-size: 12px; color: var(--text-helper); white-space: normal; max-width: 180px; text-align: right; letter-spacing: 0.32px; }
-td.num .undisclosed { color: var(--text-helper); white-space: normal; max-width: 180px; text-align: right; }
-td.info { min-width: 240px; }
+td.num .value { font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; }
+td.num .type { font-size: 12px; color: var(--text-secondary); letter-spacing: 0.32px; }
+td.num .label { display: block; margin: 8px auto 0; font-size: 12px; color: var(--text-helper); max-width: 200px; letter-spacing: 0.32px; }
+td.info { min-width: 200px; }
 td.cause { white-space: nowrap; }
 .tag {
   display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 12px;
