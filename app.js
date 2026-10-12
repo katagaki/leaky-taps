@@ -218,24 +218,31 @@
     return "record";
   }
 
-  function tile(type, n, label) {
+  function tile(type, n, label, detail) {
     const [icon, typeLabel] = TYPES[type];
     return `<div class="tile">
         <span class="icon" style="--icon: url(img/${icon}.svg)" aria-hidden="true"></span>
         ${n != null ? `<span class="value">${fmt(n)}</span>` : ""}
-        <span class="type">${esc(label || typeLabel)}</span>
+        <span class="type">${esc(label || typeLabel)}${detail ? infoButton(detail, "内訳", "small") : ""}</span>
       </div>`;
   }
 
-  function infoButton(r) {
-    return `<button class="info-btn" type="button" data-info="${esc(r.info)}" aria-label="漏えいした情報：${esc(r.info)}"><span class="icon" style="--icon: url(img/information.svg)"></span></button>`;
+  function infoButton(text, name = "漏えいした情報", cls = "") {
+    return `<button class="info-btn ${cls}" type="button" data-info="${esc(text)}" aria-label="${name}：${esc(text)}"><span class="icon" style="--icon: url(img/information.svg)"></span></button>`;
   }
 
+  // Counts with a breakdown or caveat move into a popover beside the first tile's subtitle.
+  const hasDetail = (nl) => /[（(＋+・、]/.test(nl);
+
   function recordTiles(r) {
-    if (!r.k && r.n == null) return `<div class="tiles">${tile("unknown", null, r.nl)}</div>${infoButton(r)}`;
+    const detail = hasDetail(r.nl) ? r.nl : "";
+    if (!r.k && r.n == null) {
+      return `<div class="tiles">${tile("unknown", null, r.nl.split("（")[0], detail)}</div>${infoButton(r.info)}`;
+    }
     const parts = r.k || [[recordType(r), r.n]];
-    const tiles = parts.map(([type, n, label]) => tile(type, n, label)).join("");
-    return `<div class="tiles${parts.length > 1 ? " multi" : ""}">${tiles}</div><span class="label">${esc(r.nl)}</span>${infoButton(r)}`;
+    const tiles = parts.map(([type, n, label], i) => tile(type, n, label, i === 0 ? detail : "")).join("");
+    const caption = detail ? "" : `<span class="label">${esc(r.nl)}</span>`;
+    return `<div class="tiles${parts.length > 1 ? " multi" : ""}">${tiles}</div>${caption}${infoButton(r.info)}`;
   }
 
   function rowHTML(r) {
