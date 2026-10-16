@@ -99,7 +99,7 @@ h2 { font-size: 20px; line-height: 1.4; font-weight: 400; }
   padding: 8px 16px; font-size: 12px; line-height: 1.33; letter-spacing: 0.32px;
 }
 .tooltip strong { display: block; font-weight: 600; margin-bottom: 4px; }
-.tooltip ul { margin: 0; padding-left: 16px; color: var(--text-secondary); }
+.tooltip ul { margin: 4px 0 0; padding-left: 16px; color: var(--text-secondary); }
 
 /* Filters — Carbon fields: square, bottom border, 40px tall */
 .filters { display: flex; flex-wrap: wrap; gap: 1px; margin: 0 0 16px; }
@@ -183,10 +183,13 @@ td.src a { display: block; }
 .map-legend { gap: 16px; }
 .map-legend span { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
 .map-legend .dot { width: 8px; height: 12px; }
+.links-toggle { display: inline-flex; align-items: center; gap: 6px; }
+.links-toggle input { margin: 0; accent-color: var(--accent); }
+.links-toggle .arc { width: 16px; height: 8px; border: 1.5px solid #ffb3b8; border-bottom: 0; border-radius: 8px 8px 0 0; }
 .dot.fresh { background: var(--heat-4); } .dot.old { background: var(--heat-2); } .dot.unknown { background: #8d8d8d; }
 .map-layout { display: grid; grid-template-columns: minmax(0, 1fr) 288px; grid-template-rows: auto auto; column-gap: 1px; }
 .map-side { grid-column: 2; grid-row: 1 / span 2; border-left: 1px solid var(--border-panel); }
-.map-stage { position: relative; background: #000; min-width: 0; }
+.map-stage { scroll-margin-top: 56px; position: relative; background: #000; min-width: 0; }
 .scene { height: min(72vh, 680px); min-height: 360px; touch-action: none; }
 .scene canvas { display: block; width: 100%; height: 100%; }
 .scene-error[hidden] { display: none; }
@@ -196,13 +199,25 @@ td.src a { display: block; }
 .hud-stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-helper); letter-spacing: 0.32px; }
 .hud-stats b { color: var(--text-primary); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
 .map-side { background: var(--layer-01); display: flex; flex-direction: column; min-height: 0; max-height: calc(min(72vh, 680px) + 60px); }
-.map-side h3 { margin: 0; padding: 12px 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--border-subtle); }
+.side-tabs { display: flex; border-bottom: 1px solid var(--border-subtle); }
+.side-tabs button {
+  all: unset; flex: 1; padding: 12px 8px; text-align: center; font-size: 14px; color: var(--text-helper);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.side-tabs button:hover { color: var(--text-primary); background: var(--layer-hover-01); }
+.side-tabs button[aria-selected="true"] { color: var(--text-primary); font-weight: 600; border-bottom-color: var(--accent); }
+.side-tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.recent[hidden] { display: none; }
 .recent { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
 .recent li + li { border-top: 1px solid var(--border-panel); }
 .recent button { all: unset; display: block; width: 100%; box-sizing: border-box; padding: 10px 16px; }
 .recent button:hover { background: var(--layer-hover-01); }
 .recent button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-.r-name { display: block; color: var(--text-primary); }
+.r-name { display: flex; justify-content: space-between; gap: 8px; color: var(--text-primary); }
+.r-count { font-weight: 600; font-variant-numeric: tabular-nums; color: #ffb3b8; }
+.r-count small { font-weight: 400; color: var(--text-helper); }
+.recent button.active { background: var(--layer-02); box-shadow: inset 2px 0 0 #ffb3b8; }
+.recent button:disabled { opacity: 0.35; }
 .r-meta { display: block; font-size: 12px; color: var(--text-helper); letter-spacing: 0.32px; }
 .r-empty { padding: 16px; color: var(--text-helper); font-size: 12px; }
 
@@ -232,6 +247,7 @@ td.src a { display: block; }
   border: 0; border-bottom: 1px solid var(--border-strong); border-radius: 0; padding: 0 12px;
 }
 .tooltip .t-row { display: block; color: var(--text-secondary); }
+.tooltip .t-via { display: block; margin-top: 4px; color: #ffb3b8; }
 .tooltip .t-info { display: block; margin-top: 6px; color: var(--text-helper); }
 .tooltip .t-src { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; }
 .tooltip.pinned { max-width: 320px; }

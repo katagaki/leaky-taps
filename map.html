@@ -45,13 +45,14 @@
     <section class="card map-card" aria-labelledby="map-title">
       <div class="card-head">
         <h2 id="map-title">地図で見る漏洩</h2>
-        <div class="legend map-legend" aria-hidden="true">
-          <span><i class="dot fresh"></i>直近7日</span>
-          <span><i class="dot old"></i>それ以前</span>
-          <span><i class="dot unknown"></i>件数非公表</span>
+        <div class="legend map-legend">
+          <span aria-hidden="true"><i class="dot fresh"></i>直近7日</span>
+          <span aria-hidden="true"><i class="dot old"></i>それ以前</span>
+          <span aria-hidden="true"><i class="dot unknown"></i>件数非公表</span>
+          <label class="links-toggle"><input id="links" type="checkbox" checked><i class="arc"></i>関係線</label>
         </div>
       </div>
-      <p class="hint">柱の高さは影響件数（対数）です。ドラッグで回転、右ドラッグ・2本指で移動、ホイール・ピンチで拡大できます。</p>
+      <p class="hint">柱の高さは影響件数（対数）です。線は委託先・共通基盤からの波及を表し、柱や線の起点にカーソルを合わせると関係する事案が強調されます。ドラッグで回転、右ドラッグ・2本指で移動、ホイール・ピンチで拡大できます。</p>
 
       <div class="map-layout">
         <div class="map-stage">
@@ -83,9 +84,13 @@
           </select>
         </div>
 
-        <aside class="map-side" aria-labelledby="recent-title">
-          <h3 id="recent-title">直近7日の公表</h3>
-          <ol id="recent" class="recent"></ol>
+        <aside class="map-side" aria-label="事案の一覧">
+          <div class="side-tabs" role="tablist">
+            <button type="button" role="tab" aria-selected="true" aria-controls="recent" data-tab="recent">直近7日の公表</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="groups" data-tab="groups">波及した事案</button>
+          </div>
+          <ol id="recent" class="recent" role="tabpanel"></ol>
+          <ol id="groups" class="recent" role="tabpanel" hidden></ol>
         </aside>
       </div>
 
@@ -95,6 +100,7 @@
       <h2>地図について</h2>
       <ul>
         <li>位置は各社の<strong>本社所在地</strong>、自治体・行政機関は<strong>役所・庁舎の所在地</strong>、大学・病院は主なキャンパス・施設です。海外子会社の事案は日本の親会社の本社に表示しています。</li>
+        <li><strong>関係線</strong>は、委託先・クラウド・共通の基盤サービスへの攻撃がほかの組織の漏えいにつながった事案を、起点の事業者から各組織へ結んだものです。報道や各社の発表で起点が明記されているものに限っています。</li>
         <li>所在地は市区町村程度の精度です。同じ場所に複数の事案がある場合は少しずらして表示しています。</li>
         <li>地図データ：地球地図日本（国土地理院）をもとに簡略化したものです。</li>
       </ul>

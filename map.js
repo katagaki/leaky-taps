@@ -43,6 +43,35 @@ placed.forEach((r) => {
   r.h = r.n == null ? 0.1 : 0.12 + 0.36 * Math.log10(Math.max(r.n, 1));
 });
 
+// ── Relationships: leaks that came through a shared vendor or platform ──
+const shortName = (ja) => ja.replace(/（.+）$/, "");
+const byJa = new Map(placed.map((r) => [r.ja, r]));
+const groups = new Map();
+placed.forEach((r) => {
+  if (!r.via) return;
+  let g = groups.get(r.via);
+  if (!g) {
+    const hub = byJa.get(r.via) || null;
+    let x, z, place;
+    if (hub) ({ x, z, place } = hub);
+    else if (GEO[r.via]) { const [lat, lon, pl] = GEO[r.via]; [x, z] = project(lon, lat); place = pl; }
+    else return;
+    g = { key: r.via, name: shortName(r.via), hub, x, z, place, members: [] };
+    groups.set(r.via, g);
+    if (hub) hub.hubOf = g;
+  }
+  g.members.push(r);
+  r.group = g;
+});
+const groupList = [...groups.values()].sort((a, b) => b.members.length - a.members.length || a.name.localeCompare(b.name, "ja"));
+// A member can itself be the hub of a further chain (IDCF → futureshop → its shops), so focus follows it downstream.
+function downstream(g, set = new Set()) {
+  if (set.has(g)) return set;
+  set.add(g);
+  g.members.forEach((m) => m.hubOf && downstream(m.hubOf, set));
+  return set;
+}
+
 const perDay = new Array(SPAN + 1).fill(0);
 all.forEach((r) => perDay[Math.round((toUTC(r.d) - START) / DAY)]++);
 
@@ -137,6 +166,52 @@ function ripple(r) {
   m.visible = true;
 }
 
+// Arcs from each vendor/platform to the organisations its incident reached.
+const ARC_N = 48;
+const arcs = [];
+groupList.forEach((g) => g.members.forEach((r) => {
+  const a = new THREE.Vector3(g.x, SLAB, g.z), b = new THREE.Vector3(r.x, SLAB, r.z);
+  const mid = a.clone().lerp(b, 0.5);
+  mid.y = SLAB + 0.35 + a.distanceTo(b) * 0.35;
+  const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+  const geom = new THREE.BufferGeometry().setFromPoints(curve.getPoints(ARC_N));
+  const line = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xffb3b8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  line.visible = false;
+  scene.add(line);
+  arcs.push({ r, g, curve, line });
+}));
+
+const dotTex = (() => {
+  const c = document.createElement("canvas");
+  c.width = c.height = 32;
+  const ctx = c.getContext("2d");
+  const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grad.addColorStop(0, "rgba(255,255,255,1)");
+  grad.addColorStop(0.4, "rgba(255,215,217,0.8)");
+  grad.addColorStop(1, "rgba(255,131,137,0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(c);
+})();
+const pulsePos = new Float32Array(Math.max(1, arcs.length) * 3);
+const pulses = new THREE.Points(
+  new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(pulsePos, 3)),
+  new THREE.PointsMaterial({ map: dotTex, size: 10, sizeAttenuation: false, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+);
+pulses.frustumCulled = false;
+scene.add(pulses);
+
+// Vendors that appear only as a source (no leak entry of their own) get a floating diamond.
+const hubMeshes = groupList.filter((g) => !g.hub).map((g) => {
+  const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.1), new THREE.MeshBasicMaterial({ color: 0xffd7d9 }));
+  m.position.set(g.x, SLAB + 0.25, g.z);
+  m.userData.group = g;
+  m.visible = false;
+  g.firstDay = Math.min(...g.members.map((r) => r.day));
+  scene.add(m);
+  return m;
+});
+
 const marker = new THREE.Mesh(new THREE.RingGeometry(0.12, 0.16, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff }));
 marker.visible = false;
 scene.add(marker);
@@ -167,9 +242,9 @@ function home() {
   controls.target.copy(target);
   controls.update();
 }
-function flyTo(r) {
+function flyTo(r, maxDist = 22) {
   const offset = camera.position.clone().sub(controls.target);
-  const len = Math.min(offset.length(), 22);
+  const len = Math.min(offset.length(), maxDist);
   offset.setLength(len);
   const target = new THREE.Vector3(r.x, 0, r.z);
   fly.from = { pos: camera.position.clone(), tgt: controls.target.clone() };
@@ -184,7 +259,7 @@ renderer.domElement.addEventListener("dblclick", home);
 const scrub = $("#scrub");
 scrub.max = String(SPAN);
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const state = { t: reduceMotion ? SPAN : 0, playing: false, speed: 1, lastDay: -1, prevCount: 0 };
+const state = { t: reduceMotion ? SPAN : 0, playing: false, speed: 1, lastDay: -1, prevCount: 0, links: true };
 
 const spark = $("#spark");
 const maxDay = Math.max(...perDay);
@@ -213,8 +288,20 @@ scrub.addEventListener("input", () => { state.t = Number(scrub.value); setPlayin
 addEventListener("keydown", (e) => {
   if (e.code === "Space" && !e.target.closest("input, select, button")) { e.preventDefault(); setPlaying(!state.playing); }
 });
+$("#links").addEventListener("change", (e) => { state.links = e.target.checked; if (!state.links) setFocus(null); });
 
+// ── Side panel ───────────────────────────────────────────────
 const recent = $("#recent");
+const groupsEl = $("#groups");
+document.querySelectorAll(".side-tabs [role=tab]").forEach((tab) => tab.addEventListener("click", () => {
+  document.querySelectorAll(".side-tabs [role=tab]").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+  recent.hidden = tab.dataset.tab !== "recent";
+  groupsEl.hidden = tab.dataset.tab !== "groups";
+}));
+
+const md = (iso) => fmtDate(iso).slice(5);
+const span = (g) => { const a = g.members[0].d, b = g.members.at(-1).d; return a === b ? md(a) : `${md(a)}〜${md(b)}`; };
+
 function updateDay(day) {
   const iso = toISO(START + day * DAY);
   $("#hud-date").textContent = fmtDate(iso);
@@ -227,87 +314,159 @@ function updateDay(day) {
   const list = placed.filter((r) => r.d <= iso && r.d >= from).reverse();
   recent.innerHTML = list.length
     ? list.map((r) => `<li><button type="button" data-i="${placed.indexOf(r)}">
-        <span class="r-name">${esc(r.ja.replace(/（.+）$/, ""))}</span>
-        <span class="r-meta">${fmtDate(r.d).slice(5)} · ${esc(r.place)}${r.n != null ? ` · ${compact(r.n)}` : ""}</span>
+        <span class="r-name">${esc(shortName(r.ja))}</span>
+        <span class="r-meta">${fmtDate(r.d).slice(5)} · ${esc(r.place)}${r.n != null ? ` · ${compact(r.n)}` : ""}${r.group ? ` · ${esc(r.group.name)}経由` : ""}</span>
       </button></li>`).join("")
     : `<li class="r-empty">この期間の公表はありません。</li>`;
+
+  groupsEl.innerHTML = groupList.map((g, gi) => {
+    const seen = g.members.filter((r) => r.d <= iso).length;
+    return `<li><button type="button" data-g="${gi}" class="${state.pinGroup === g ? "active" : ""}"${seen ? "" : " disabled"}>
+        <span class="r-name">${esc(g.name)}<span class="r-count">${seen}<small>/${g.members.length}</small></span></span>
+        <span class="r-meta">${esc(g.place)} · ${span(g)}</span>
+      </button></li>`;
+  }).join("");
 }
 
 // ── Hover / select ───────────────────────────────────────────
 const tip = $("#tooltip");
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
-let hovered = -1, pinned = -1;
+let hovered = null, pinned = null;
 
-function tipHTML(r) {
-  const sources = r.src.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(new URL(u).hostname.replace(/^www\d?\./, "") === "rocket-boys.co.jp" ? "セキュリティ対策Lab" : new URL(u).hostname.replace(/^www\d?\./, ""))} ↗</a>`).join("");
+const hostLabel = (u) => { const h = new URL(u).hostname.replace(/^www\d?\./, ""); return h === "rocket-boys.co.jp" ? "セキュリティ対策Lab" : h; };
+function leakHTML(r) {
+  const sources = r.src.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(hostLabel(u))} ↗</a>`).join("");
   return `<strong>${esc(r.ja)}</strong>
     <span class="t-row">${fmtDate(r.d)} · ${esc(r.place)}</span>
     <span class="t-row">${esc(r.nl)} · ${esc(r.cause)}</span>
+    ${r.group ? `<span class="t-via">↖ ${esc(r.group.name)}を経由</span>` : ""}
+    ${r.hubOf ? `<span class="t-via">↘ ${r.hubOf.members.length}件の事案に波及</span>` : ""}
     <span class="t-info">${esc(r.info)}</span>
-    ${pinned >= 0 ? `<span class="t-src">${sources}</span>` : ""}`;
+    ${pinned ? `<span class="t-src">${sources}</span>` : ""}`;
 }
-function showTip(i, x, y) {
-  const r = placed[i];
-  tip.innerHTML = tipHTML(r);
+function groupHTML(g) {
+  const names = g.members.slice(0, 10).map((r) => `<li>${esc(shortName(r.ja))}</li>`).join("");
+  const more = g.members.length > 10 ? `<li>ほか${g.members.length - 10}件</li>` : "";
+  return `<strong>${esc(g.name)}</strong>
+    <span class="t-row">${esc(g.place)}</span>
+    <span class="t-via">↘ ${g.members.length}件の事案に波及</span>
+    <ul>${names}${more}</ul>`;
+}
+
+// Target is { r } for a leak column or { g } for a vendor-only diamond.
+function showTip(target, x, y) {
+  tip.innerHTML = target.r ? leakHTML(target.r) : groupHTML(target.g);
   tip.hidden = false;
-  tip.classList.toggle("pinned", pinned >= 0);
+  tip.classList.toggle("pinned", !!pinned);
+  tip.style.pointerEvents = pinned ? "auto" : "";
   const tw = tip.offsetWidth, th = tip.offsetHeight;
   tip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - tw - 8))}px`;
-  tip.style.top = `${y + 14 + th > innerHeight - 8 ? y - th - 14 : y + 14}px`;
-  marker.position.set(r.x, SLAB + 0.006, r.z);
+  tip.style.top = `${Math.max(8, y + 14 + th > innerHeight - 8 ? y - th - 14 : y + 14)}px`;
+  const p = target.r || target.g;
+  marker.position.set(p.x, SLAB + 0.006, p.z);
   marker.visible = true;
 }
-function hideTip() { tip.hidden = true; marker.visible = false; hovered = -1; }
+function hideTip() { tip.hidden = true; tip.style.pointerEvents = ""; marker.visible = false; }
+
+// Hovering or pinning anything that belongs to a chain lights up the whole chain.
+let focus = null;
+function setFocus(g) { focus = g && state.links ? downstream(g) : null; }
+const groupOf = (target) => target && (target.g || target.r.hubOf || target.r.group) || null;
+function refreshFocus() { setFocus(state.pinGroup || groupOf(pinned) || groupOf(hovered)); }
 
 function pick(e) {
   const rect = renderer.domElement.getBoundingClientRect();
   ptr.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const hit = ray.intersectObject(columns)[0];
-  return hit ? hit.instanceId : -1;
+  const hits = ray.intersectObjects([columns, ...hubMeshes.filter((m) => m.visible)]);
+  const hit = hits[0];
+  if (!hit) return null;
+  return hit.object === columns ? { r: placed[hit.instanceId] } : { g: hit.object.userData.group };
 }
+const same = (a, b) => (a && b ? a.r === b.r && a.g === b.g : a === b);
+
 renderer.domElement.addEventListener("pointermove", (e) => {
-  if (pinned >= 0 || e.pointerType !== "mouse") return;
-  const i = pick(e);
-  if (i === hovered) { if (i >= 0) showTip(i, e.clientX, e.clientY); return; }
-  hovered = i;
-  renderer.domElement.style.cursor = i >= 0 ? "pointer" : "";
-  if (i >= 0) showTip(i, e.clientX, e.clientY); else hideTip();
+  if (pinned || e.pointerType !== "mouse") return;
+  const target = pick(e);
+  renderer.domElement.style.cursor = target ? "pointer" : "";
+  if (!same(target, hovered)) { hovered = target; refreshFocus(); }
+  if (target) showTip(target, e.clientX, e.clientY); else hideTip();
 });
-renderer.domElement.addEventListener("pointerleave", () => { if (pinned < 0) hideTip(); });
+renderer.domElement.addEventListener("pointerleave", () => { if (!pinned) { hovered = null; hideTip(); refreshFocus(); } });
 
 let down = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { down = [e.clientX, e.clientY]; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
-  const i = pick(e);
-  pinned = i;
-  if (i >= 0) { tip.style.pointerEvents = "auto"; showTip(i, e.clientX, e.clientY); } else { tip.style.pointerEvents = ""; hideTip(); }
+  pinned = pick(e);
+  hovered = null;
+  if (pinned) { state.pinGroup = null; showTip(pinned, e.clientX, e.clientY); } else hideTip();
+  refreshFocus();
 });
+function unpin() { pinned = null; state.pinGroup = null; hideTip(); refreshFocus(); groupsEl.querySelector(".active")?.classList.remove("active"); }
 document.addEventListener("pointerdown", (e) => {
-  if (pinned >= 0 && !e.target.closest("#tooltip, canvas, #recent")) { pinned = -1; tip.style.pointerEvents = ""; hideTip(); }
+  if ((pinned || state.pinGroup) && !e.target.closest("#tooltip, canvas, .map-side")) unpin();
 });
 
+function tipBeside(el, target) {
+  if (innerWidth <= 900) {
+    // Stacked layout: the list sits below the map, so bring the map back into view first.
+    hideTip();
+    const stage = $(".map-stage");
+    stage.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    setTimeout(() => {
+      if (!same(pinned, target)) return;
+      const rc = stage.getBoundingClientRect();
+      showTip(target, rc.left, rc.top);
+      tip.style.top = `${Math.max(56, rc.bottom - tip.offsetHeight - 8)}px`;
+    }, 700);
+    return;
+  }
+  const rc = el.getBoundingClientRect();
+  showTip(target, rc.left, rc.top);
+  if (innerWidth > 900) tip.style.left = `${Math.max(8, rc.left - tip.offsetWidth - 8)}px`;
+}
 recent.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-i]");
   if (!b) return;
-  const i = Number(b.dataset.i);
-  flyTo(placed[i]);
-  pinned = i;
-  tip.style.pointerEvents = "auto";
-  const rc = b.getBoundingClientRect();
-  showTip(i, rc.left, rc.top);
-  if (innerWidth > 900) tip.style.left = `${Math.max(8, rc.left - tip.offsetWidth - 8)}px`;
+  const r = placed[Number(b.dataset.i)];
+  flyTo(r);
+  state.pinGroup = null;
+  pinned = { r };
+  tipBeside(b, pinned);
+  refreshFocus();
 });
-recent.addEventListener("pointerover", (e) => {
-  const b = e.target.closest("button[data-i]");
-  if (b && pinned < 0) { const r = placed[Number(b.dataset.i)]; marker.position.set(r.x, SLAB + 0.006, r.z); marker.visible = true; }
+groupsEl.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-g]");
+  if (!b) return;
+  const g = groupList[Number(b.dataset.g)];
+  if (state.pinGroup === g) { unpin(); return; }
+  groupsEl.querySelector(".active")?.classList.remove("active");
+  b.classList.add("active");
+  state.pinGroup = g;
+  pinned = { g };
+  if (!state.links) { state.links = true; $("#links").checked = true; }
+  flyTo(g, 26);
+  tipBeside(b, pinned);
+  refreshFocus();
 });
-recent.addEventListener("pointerout", () => { if (pinned < 0) marker.visible = false; });
+[recent, groupsEl].forEach((el) => {
+  el.addEventListener("pointerover", (e) => {
+    const b = e.target.closest("button[data-i], button[data-g]");
+    if (!b || pinned) return;
+    const p = b.dataset.i ? placed[Number(b.dataset.i)] : groupList[Number(b.dataset.g)];
+    marker.position.set(p.x, SLAB + 0.006, p.z);
+    marker.visible = true;
+    hovered = b.dataset.i ? { r: p } : { g: p };
+    refreshFocus();
+  });
+  el.addEventListener("pointerout", () => { if (!pinned) { marker.visible = false; hovered = null; refreshFocus(); } });
+});
 
 // ── Loop ─────────────────────────────────────────────────────
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const inFocus = (r) => focus && ((r.group && focus.has(r.group)) || (r.hubOf && focus.has(r.hubOf)));
 let last = performance.now();
 function tick(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
@@ -332,6 +491,7 @@ function tick(now) {
     const fade = Math.min(1, Math.max(0, (age - RECENT_DAYS) / 30));
     if (r.n == null) tmpC.copy(C_UNK_FRESH).lerp(C_UNK_OLD, fade);
     else tmpC.copy(C_FRESH).lerp(C_OLD, fade);
+    if (focus && !inFocus(r)) tmpC.multiplyScalar(0.18);
     columns.setColorAt(i, tmpC);
   }
   if (state.playing) for (let i = state.prevCount; i < count; i++) ripple(placed[i]);
@@ -339,6 +499,31 @@ function tick(now) {
   columns.count = count;
   columns.instanceMatrix.needsUpdate = true;
   if (columns.instanceColor) columns.instanceColor.needsUpdate = true;
+
+  // Arcs draw themselves from the vendor outwards as each affected leak is announced.
+  let np = 0;
+  arcs.forEach((a, i) => {
+    const age = t - a.r.day;
+    const on = state.links && age >= 0;
+    a.line.visible = on;
+    if (!on) return;
+    const prog = Math.min(1, age / 1.5 + 0.02);
+    a.line.geometry.setDrawRange(0, Math.ceil(prog * (ARC_N + 1)));
+    const lit = focus && focus.has(a.g);
+    a.line.material.opacity = focus ? (lit ? 0.95 : 0.03) : age < RECENT_DAYS ? 0.55 : 0.2;
+    if (lit || (!focus && age < RECENT_DAYS)) {
+      const p = a.curve.getPoint(prog < 1 ? prog : (now / 1800 + i * 0.137) % 1);
+      pulsePos.set([p.x, p.y, p.z], np++ * 3);
+    }
+  });
+  pulses.geometry.setDrawRange(0, np);
+  pulses.geometry.attributes.position.needsUpdate = true;
+  hubMeshes.forEach((m) => {
+    const g = m.userData.group;
+    m.visible = state.links && t >= g.firstDay;
+    m.rotation.y = now / 1200;
+    m.material.color.set(focus && !focus.has(g) ? 0x3a2a2b : 0xffd7d9);
+  });
 
   const day = Math.floor(t);
   if (day !== state.lastDay) { state.lastDay = day; updateDay(day); }
@@ -364,6 +549,7 @@ function tick(now) {
 }
 
 scrub.value = String(state.t);
-$("#geo-note").textContent = `${fmt(all.length)}件中${fmt(placed.length)}件を地図に表示しています${missing ? `（所在地不明の${missing}件を除く）` : ""}。`;
+const linked = groupList.reduce((s, g) => s + g.members.length, 0);
+$("#geo-note").textContent = `${fmt(all.length)}件中${fmt(placed.length)}件を地図に表示しています${missing ? `（所在地不明の${missing}件を除く）` : ""}。関係線は${groupList.length}の事業者・基盤から${linked}件の事案に引いています。`;
 requestAnimationFrame(tick);
 if (!reduceMotion) setTimeout(() => setPlaying(true), 600);
