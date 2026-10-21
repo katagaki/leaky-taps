@@ -41,6 +41,22 @@
   </header>
 
   <main class="wrap">
+    <section class="alert" role="note" aria-labelledby="alert-title">
+      <h2 id="alert-title">注意喚起</h2>
+      <ul>
+        <li>
+          <strong>eMudhra（インドの認証局）の中間CA秘密鍵8件が漏えい</strong>
+          <p>秘密鍵が極めて弱い値で生成されており、第三者がHTTPS・コード署名用の偽の証明書を発行できるおそれ。Firefox・Chrome・Safari・Windowsは該当証明書をブロック済み。OSやブラウザ、言語ランタイムの証明書ストアを最新にしてください。</p>
+          <a href="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/" target="_blank" rel="noopener">Mozilla Security Blog（10月20日）</a>
+        </li>
+        <li>
+          <strong>PHPに重大なリモートコード実行の脆弱性2件（CVE-2026-109618／CVE-2026-109619）</strong>
+          <p>CVSS v4.0 9.2。詳細が公開前に流出しています。修正版は10月21日 14:00 UTC（日本時間23:00）に公開予定。公開後すぐに更新し、それまではインターネットに公開しているPHPアプリの隔離を検討してください。</p>
+          <a href="https://www.php.net/archive/2026.php#2026-10-20-1" target="_blank" rel="noopener">php.net のお知らせ（10月20日）</a>
+        </li>
+      </ul>
+    </section>
+
     <section class="card" aria-labelledby="cal-title">
       <div class="card-head">
         <h2 id="cal-title">日別の公表件数</h2>
