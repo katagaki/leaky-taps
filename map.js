@@ -17,19 +17,30 @@ const toUTC = (iso) => { const [y, m, d] = iso.split("-").map(Number); return Da
 const toISO = (ms) => new Date(ms).toISOString().slice(0, 10);
 const DAY = 86400000;
 const project = (lon, lat) => [(lon - LON0) * KX, -(lat - LAT0)];
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+// Slight overshoot so a new column pops up rather than just appearing.
+const easeOutBack = (x) => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ── Data ─────────────────────────────────────────────────────
 const all = LEAKS.map((r) => ({ ...r, src: r.src.map((s) => (s.startsWith("rb:") ? RB + s.slice(3) : s)) }));
 const START = Math.min(...all.map((r) => toUTC(r.d)));
 const END = Math.max(...all.map((r) => toUTC(r.d)));
 const SPAN = Math.round((END - START) / DAY);
+// The timeline runs to the end of the last day, so leaks staggered within it still appear.
+const T_END = SPAN + 0.99;
+const STAGGER = 0.85;
 
 const placed = all.filter((r) => GEO[r.ja]).sort((a, b) => a.d.localeCompare(b.d));
 const missing = all.length - placed.length;
+const sameDay = new Map();
+placed.forEach((r) => sameDay.set(r.d, (sameDay.get(r.d) || 0) + 1));
 
 // Leaks sharing a spot fan out in a sunflower pattern so each column stays hoverable.
 const seen = new Map();
-placed.forEach((r) => {
+const nthOfDay = new Map();
+placed.forEach((r, i) => {
   const [lat, lon, place] = GEO[r.ja];
   const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
   const k = seen.get(key) || 0;
@@ -37,7 +48,11 @@ placed.forEach((r) => {
   const [x, z] = project(lon, lat);
   const rad = 0.09 * Math.sqrt(k), ang = k * 2.39996;
   r.place = place;
-  r.day = Math.round((toUTC(r.d) - START) / DAY);
+  r.i = i;
+  // Busy days announce dozens at once; spreading them across the day lets them arrive one by one.
+  const nth = nthOfDay.get(r.d) || 0;
+  nthOfDay.set(r.d, nth + 1);
+  r.day = Math.round((toUTC(r.d) - START) / DAY) + (STAGGER * nth) / sameDay.get(r.d);
   r.x = x + rad * Math.cos(ang);
   r.z = z + rad * Math.sin(ang);
   r.h = r.n == null ? 0.1 : 0.12 + 0.36 * Math.log10(Math.max(r.n, 1));
@@ -168,6 +183,7 @@ function ripple(r) {
 
 // Arcs from each vendor/platform to the organisations its incident reached.
 const ARC_N = 48;
+const PULSE_SPEED = 2.5; // scene units per second
 const arcs = [];
 groupList.forEach((g) => g.members.forEach((r) => {
   const a = new THREE.Vector3(g.x, SLAB, g.z), b = new THREE.Vector3(r.x, SLAB, r.z);
@@ -178,7 +194,9 @@ groupList.forEach((g) => g.members.forEach((r) => {
   const line = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xffb3b8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   line.visible = false;
   scene.add(line);
-  arcs.push({ r, g, curve, line });
+  // Pulses travel at a steady speed, so longer arcs take longer to cross.
+  const period = Math.max(700, (curve.getLength() / PULSE_SPEED) * 1000);
+  arcs.push({ r, g, curve, line, period, phase: Math.random(), op: 0, glow: 0 });
 }));
 
 const dotTex = (() => {
@@ -194,9 +212,13 @@ const dotTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 const pulsePos = new Float32Array(Math.max(1, arcs.length) * 3);
+// Additive blending, so a black vertex colour makes a pulse invisible.
+const pulseCol = new Float32Array(Math.max(1, arcs.length) * 3);
 const pulses = new THREE.Points(
-  new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(pulsePos, 3)),
-  new THREE.PointsMaterial({ map: dotTex, size: 10, sizeAttenuation: false, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+  new THREE.BufferGeometry()
+    .setAttribute("position", new THREE.BufferAttribute(pulsePos, 3))
+    .setAttribute("color", new THREE.BufferAttribute(pulseCol, 3)),
+  new THREE.PointsMaterial({ map: dotTex, size: 10, sizeAttenuation: false, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
 );
 pulses.frustumCulled = false;
 scene.add(pulses);
@@ -206,6 +228,7 @@ const hubMeshes = groupList.filter((g) => !g.hub).map((g) => {
   const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.1), new THREE.MeshBasicMaterial({ color: 0xffd7d9 }));
   m.position.set(g.x, SLAB + 0.25, g.z);
   m.userData.group = g;
+  m.userData.dim = 0;
   m.visible = false;
   g.firstDay = Math.min(...g.members.map((r) => r.day));
   scene.add(m);
@@ -217,7 +240,10 @@ marker.visible = false;
 scene.add(marker);
 
 // ── Camera framing ───────────────────────────────────────────
+const FLY_SEC = 0.9;
 const fly = { from: null, to: null, t: 1 };
+// Grabbing the map mid-flight hands control straight back to the user.
+controls.addEventListener("start", () => { fly.t = 1; });
 function frame() {
   const w = host.clientWidth, h = host.clientHeight;
   camera.aspect = w / h;
@@ -225,7 +251,7 @@ function frame() {
   renderer.setSize(w, h, false);
   return w / h;
 }
-function home() {
+function homePose() {
   const aspect = frame();
   // Wide screens look from the south-east so the archipelago runs across the frame.
   const az = aspect > 1.1 ? 0.7 : 0.15;
@@ -233,33 +259,50 @@ function home() {
   const hfov = 2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * aspect);
   const dist = Math.min(68, Math.max(halfW / Math.tan(hfov / 2), aspect > 1.1 ? 0 : 30));
   const polar = 0.85;
-  const target = new THREE.Vector3(aspect > 1.1 ? 0 : -0.5, 0, aspect > 1.1 ? 0.6 : 1);
-  camera.position.set(
-    target.x + dist * Math.sin(polar) * Math.sin(az),
+  const tgt = new THREE.Vector3(aspect > 1.1 ? 0 : -0.5, 0, aspect > 1.1 ? 0.6 : 1);
+  const off = new THREE.Vector3(
+    dist * Math.sin(polar) * Math.sin(az),
     dist * Math.cos(polar),
-    target.z + dist * Math.sin(polar) * Math.cos(az),
+    dist * Math.sin(polar) * Math.cos(az),
   );
-  controls.target.copy(target);
-  controls.update();
+  return { tgt, off };
 }
-function flyTo(r, maxDist = 22) {
-  const offset = camera.position.clone().sub(controls.target);
-  const len = Math.min(offset.length(), maxDist);
-  offset.setLength(len);
-  const target = new THREE.Vector3(r.x, 0, r.z);
-  fly.from = { pos: camera.position.clone(), tgt: controls.target.clone() };
-  fly.to = { pos: target.clone().add(offset), tgt: target };
+// Target and viewing offset are interpolated separately, so the camera swings round
+// rather than cutting a straight line that dips towards the map.
+function flyToPose(to) {
+  fly.from = { tgt: controls.target.clone(), off: camera.position.clone().sub(controls.target) };
+  fly.to = to;
   fly.t = 0;
 }
+function flyTo(r, maxDist = 22) {
+  const off = camera.position.clone().sub(controls.target);
+  off.setLength(Math.min(off.length(), maxDist));
+  flyToPose({ tgt: new THREE.Vector3(r.x, 0, r.z), off });
+}
+const tmpOff = new THREE.Vector3(), tmpDir = new THREE.Vector3();
+function stepFly(dt) {
+  if (fly.t >= 1) return;
+  fly.t = reduceMotion ? 1 : Math.min(1, fly.t + dt / FLY_SEC);
+  const k = easeInOut(fly.t);
+  const len = THREE.MathUtils.lerp(fly.from.off.length(), fly.to.off.length(), k);
+  tmpDir.copy(fly.to.off).normalize();
+  tmpOff.copy(fly.from.off).normalize().lerp(tmpDir, k).setLength(len);
+  controls.target.lerpVectors(fly.from.tgt, fly.to.tgt, k);
+  camera.position.copy(controls.target).add(tmpOff);
+}
 new ResizeObserver(() => frame()).observe(host);
-home();
-renderer.domElement.addEventListener("dblclick", home);
+{
+  const { tgt, off } = homePose();
+  controls.target.copy(tgt);
+  camera.position.copy(tgt).add(off);
+  controls.update();
+}
+renderer.domElement.addEventListener("dblclick", () => flyToPose(homePose()));
 
 // ── Timeline UI ──────────────────────────────────────────────
 const scrub = $("#scrub");
-scrub.max = String(SPAN);
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const state = { t: reduceMotion ? SPAN : 0, playing: false, speed: 1, lastDay: -1, prevCount: 0, links: true };
+scrub.max = String(T_END);
+const state = { t: reduceMotion ? T_END : 0, playing: false, speed: 1, lastDay: -1, prevCount: 0, links: true };
 
 const spark = $("#spark");
 const maxDay = Math.max(...perDay);
@@ -270,14 +313,14 @@ const months = $("#months");
 for (let ms = START; ms <= END; ms += DAY) {
   const d = new Date(ms);
   if (d.getUTCDate() === 1 || ms === START) {
-    const left = ((ms - START) / DAY / SPAN) * 100;
+    const left = ((ms - START) / DAY / (SPAN + 1)) * 100;
     if (ms !== START || d.getUTCDate() < 20) months.insertAdjacentHTML("beforeend", `<span style="left:${left}%">${d.getUTCMonth() + 1}月</span>`);
   }
 }
 
 const playBtn = $("#play");
 function setPlaying(on) {
-  if (on && state.t >= SPAN) state.t = 0;
+  if (on && state.t >= T_END) state.t = 0;
   state.playing = on;
   playBtn.classList.toggle("on", on);
   playBtn.setAttribute("aria-label", on ? "一時停止" : "再生");
@@ -313,7 +356,7 @@ function updateDay(day) {
   const from = toISO(START + (day - RECENT_DAYS + 1) * DAY);
   const list = placed.filter((r) => r.d <= iso && r.d >= from).reverse();
   recent.innerHTML = list.length
-    ? list.map((r) => `<li><button type="button" data-i="${placed.indexOf(r)}">
+    ? list.map((r) => `<li><button type="button" data-i="${r.i}">
         <span class="r-name">${esc(shortName(r.ja))}</span>
         <span class="r-meta">${fmtDate(r.d).slice(5)} · ${esc(r.place)}${r.n != null ? ` · ${compact(r.n)}` : ""}${r.group ? ` · ${esc(r.group.name)}経由` : ""}</span>
       </button></li>`).join("")
@@ -465,64 +508,94 @@ groupsEl.addEventListener("click", (e) => {
 });
 
 // ── Loop ─────────────────────────────────────────────────────
-const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+// Growth, arc drawing and highlight fades run on wall-clock time so they read the same at any playback speed.
+const GROW_MS = 450, ARC_MS = 700, FADE_SEC = 0.09;
+const COL_W = 0.035;
+const C_HUB = new THREE.Color(0xffd7d9), C_HUB_DIM = new THREE.Color(0x3a2a2b);
 const inFocus = (r) => focus && ((r.group && focus.has(r.group)) || (r.hubOf && focus.has(r.hubOf)));
+const dimTarget = (r) => (focus && !inFocus(r) ? 1 : 0);
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
 let last = performance.now();
 function tick(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
+  const smooth = reduceMotion ? 1 : 1 - Math.exp(-dt / FADE_SEC);
 
   if (state.playing) {
-    state.t = Math.min(SPAN, state.t + dt * DAYS_PER_SEC * state.speed);
+    state.t = Math.min(T_END, state.t + dt * DAYS_PER_SEC * state.speed);
     scrub.value = String(state.t);
-    if (state.t >= SPAN) setPlaying(false);
+    if (state.t >= T_END) setPlaying(false);
   }
 
   const t = state.t;
   let count = 0;
   while (count < placed.length && placed[count].day <= t) count++;
+  // Leaks arriving during playback animate in; ones revealed by scrubbing appear fully grown.
+  const animate = state.playing && !reduceMotion;
+  for (let i = state.prevCount; i < count; i++) {
+    const r = placed[i];
+    r.born = animate ? now : -Infinity;
+    r.dim = dimTarget(r);
+    if (animate) ripple(r);
+  }
+  state.prevCount = count;
+
   for (let i = 0; i < count; i++) {
     const r = placed[i];
     const age = t - r.day;
-    const grow = easeOut(Math.min(1, age / 0.8 + 0.05));
-    const w = 0.055;
-    tmpM.makeScale(w, r.h * grow, w).setPosition(r.x, SLAB, r.z);
+    const grow = easeOutBack(Math.min(1, (now - r.born) / GROW_MS));
+    tmpM.makeScale(COL_W, r.h * grow, COL_W).setPosition(r.x, SLAB, r.z);
     columns.setMatrixAt(i, tmpM);
-    const fade = Math.min(1, Math.max(0, (age - RECENT_DAYS) / 30));
+    const fade = clamp01((age - RECENT_DAYS) / 30);
     if (r.n == null) tmpC.copy(C_UNK_FRESH).lerp(C_UNK_OLD, fade);
     else tmpC.copy(C_FRESH).lerp(C_OLD, fade);
-    if (focus && !inFocus(r)) tmpC.multiplyScalar(0.18);
+    r.dim += (dimTarget(r) - r.dim) * smooth;
+    tmpC.multiplyScalar(1 - 0.82 * r.dim);
     columns.setColorAt(i, tmpC);
   }
-  if (state.playing) for (let i = state.prevCount; i < count; i++) ripple(placed[i]);
-  state.prevCount = count;
   columns.count = count;
   columns.instanceMatrix.needsUpdate = true;
   if (columns.instanceColor) columns.instanceColor.needsUpdate = true;
 
   // Arcs draw themselves from the vendor outwards as each affected leak is announced.
   let np = 0;
-  arcs.forEach((a, i) => {
+  arcs.forEach((a) => {
     const age = t - a.r.day;
     const on = state.links && age >= 0;
     a.line.visible = on;
-    if (!on) return;
-    const prog = Math.min(1, age / 1.5 + 0.02);
+    if (!on) { a.op = a.glow = 0; return; }
+    const since = now - a.r.born;
+    const prog = Math.min(1, since / ARC_MS);
     a.line.geometry.setDrawRange(0, Math.ceil(prog * (ARC_N + 1)));
     const lit = focus && focus.has(a.g);
-    a.line.material.opacity = focus ? (lit ? 0.95 : 0.03) : age < RECENT_DAYS ? 0.55 : 0.2;
-    if (lit || (!focus && age < RECENT_DAYS)) {
-      const p = a.curve.getPoint(prog < 1 ? prog : (now / 1800 + i * 0.137) % 1);
-      pulsePos.set([p.x, p.y, p.z], np++ * 3);
+    const fade = clamp01((age - RECENT_DAYS) / 30);
+    a.op += ((focus ? (lit ? 0.95 : 0.03) : 0.55 - 0.35 * fade) - a.op) * smooth;
+    a.line.material.opacity = a.op;
+
+    a.glow += ((!reduceMotion && (lit || (!focus && age < RECENT_DAYS)) ? 1 : 0) - a.glow) * smooth;
+    if (a.glow < 0.01) return;
+    // While drawing, the pulse rides the tip. Afterwards it loops from the vendor,
+    // fading in and out at the ends so it never visibly jumps back.
+    let pos = prog, env = 1;
+    if (prog >= 1) {
+      pos = Number.isFinite(since) ? ((since - ARC_MS) / a.period) % 1 : (now / a.period + a.phase) % 1;
+      env = Math.min(1, pos / 0.12, (1 - pos) / 0.12);
     }
+    const p = a.curve.getPoint(pos);
+    const b = env * a.glow;
+    pulsePos.set([p.x, p.y, p.z], np * 3);
+    pulseCol.set([b, b, b], np * 3);
+    np++;
   });
   pulses.geometry.setDrawRange(0, np);
   pulses.geometry.attributes.position.needsUpdate = true;
+  pulses.geometry.attributes.color.needsUpdate = true;
   hubMeshes.forEach((m) => {
     const g = m.userData.group;
     m.visible = state.links && t >= g.firstDay;
-    m.rotation.y = now / 1200;
-    m.material.color.set(focus && !focus.has(g) ? 0x3a2a2b : 0xffd7d9);
+    if (!reduceMotion) m.rotation.y = now / 1200;
+    m.userData.dim += ((focus && !focus.has(g) ? 1 : 0) - m.userData.dim) * smooth;
+    m.material.color.copy(C_HUB).lerp(C_HUB_DIM, m.userData.dim);
   });
 
   const day = Math.floor(t);
@@ -537,12 +610,7 @@ function tick(now) {
     m.material.opacity = 0.9 * (1 - p);
   });
 
-  if (fly.t < 1) {
-    fly.t = Math.min(1, fly.t + dt / 0.8);
-    const k = easeOut(fly.t);
-    camera.position.lerpVectors(fly.from.pos, fly.to.pos, k);
-    controls.target.lerpVectors(fly.from.tgt, fly.to.tgt, k);
-  }
+  stepFly(dt);
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
