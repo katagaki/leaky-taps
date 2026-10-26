@@ -285,4 +285,34 @@ td.src a { display: block; }
   .filters input { flex-basis: 100%; }
   .filters select { flex: 1 1 40%; min-width: 0; }
   .filters button.ghost { flex-basis: 100%; text-align: left; padding: 0 16px; }
+
+  /* Table → vertical list of cards; the header row becomes a sort bar */
+  .table-scroll { overflow: visible; }
+  #leaks, #leaks thead, #leaks tbody { display: block; }
+  #leaks thead { position: sticky; top: 48px; z-index: 2; background: var(--background); }
+  #leaks thead tr { display: flex; overflow-x: auto; gap: 1px; scrollbar-width: none; }
+  #leaks thead tr::-webkit-scrollbar { display: none; }
+  #leaks thead th { position: static; flex: 1 0 auto; height: 40px; padding: 0 12px; }
+  #leaks thead th button { height: 40px; }
+  #leaks thead th:last-child { display: none; }
+  #leaks tbody tr {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px;
+    grid-template-areas: "date cause" "org org" "num num" "src src";
+    padding: 16px 0; border-top: 1px solid var(--border-subtle);
+  }
+  #leaks tbody td { display: block; border: 0; padding: 0; min-width: 0; }
+  #leaks tbody tr:hover td { background: transparent; }
+  td.date { grid-area: date; font-size: 12px; color: var(--text-helper); letter-spacing: 0.32px; }
+  td.cause { grid-area: cause; }
+  td.org { grid-area: org; min-width: 0; font-size: 16px; font-weight: 600; line-height: 1.375; }
+  td.org .sub { font-weight: 400; }
+  td.num { grid-area: num; display: flex !important; flex-wrap: wrap; align-items: flex-start; }
+  td.num .tiles, td.num .tiles.multi { flex: 1 1 0; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  td.num .tile { grid-auto-flow: column; justify-content: start; align-items: center; column-gap: 8px; padding: 10px 12px; }
+  td.num .info-btn:not(.small) { margin: 4px -8px 0 4px; flex: none; }
+  td.num .label { order: 1; flex-basis: 100%; max-width: none; }
+  td.src { grid-area: src; white-space: normal; display: flex !important; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }
+  td.src a { display: inline; }
+  #leaks tbody tr.empty-row { display: block; }
+  #leaks tbody .empty-row td { padding: 32px 0; }
 }
