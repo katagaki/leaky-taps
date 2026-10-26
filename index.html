@@ -55,8 +55,8 @@
           <a href="https://www.php.net/archive/2026.php#2026-10-20-1" target="_blank" rel="noopener">php.net のお知らせ（10月20日）</a>
         </li>
         <li>
-          <strong>Node.jsのセキュリティリリース（高深刻度4件を含む脆弱性10件）</strong>
-          <p>Brotliデコーダーの範囲外書き込みによるリモートコード実行（CVE-2026-111497）や、TLS証明書のホスト名検証回避（CVE-2026-105483／CVE-2026-106069）などを修正。eMudhraの中間CA証明書への対応も含まれます。v26.12.1・v24.22.1・v22.23.4に更新してください。サポート終了済みのNode.js 20・25には修正版が提供されないため、サポート中のバージョンへの移行が必要です。</p>
+          <strong>Brotliの脆弱性に注意（Node.jsをはじめ多くの製品が内包）</strong>
+          <p>Brotliデコーダーの範囲外書き込みによるリモートコード実行（CVE-2026-111497）が、Node.jsのセキュリティリリースで修正されました。Brotliはブラウザ、Webサーバー、CDN、プロキシ、各種言語のランタイムやライブラリなど多くのソフトウェアに組み込まれているため、Node.jsを使っていなくても影響を受ける可能性があります。利用中の製品やライブラリのBrotli対応状況と更新情報を確認し、修正版が出ていれば適用してください。Node.jsはv26.12.1・v24.22.1・v22.23.4に更新してください（Node.js 20・25はサポート終了のため修正版なし）。</p>
           <a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases" target="_blank" rel="noopener">Node.js のお知らせ（10月21日）</a>
         </li>
       </ul>
