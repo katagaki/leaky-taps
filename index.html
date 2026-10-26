@@ -55,9 +55,10 @@
           <a href="https://www.php.net/archive/2026.php#2026-10-20-1" target="_blank" rel="noopener">php.net のお知らせ（10月20日）</a>
         </li>
         <li>
-          <strong>Brotliの脆弱性に注意（Node.jsをはじめ多くの製品が内包）</strong>
-          <p>Brotliデコーダーの範囲外書き込みによるリモートコード実行（CVE-2026-111497）が、Node.jsのセキュリティリリースで修正されました。Brotliはブラウザ、Webサーバー、CDN、プロキシ、各種言語のランタイムやライブラリなど多くのソフトウェアに組み込まれているため、Node.jsを使っていなくても影響を受ける可能性があります。利用中の製品やライブラリのBrotli対応状況と更新情報を確認し、修正版が出ていれば適用してください。Node.jsはv26.12.1・v24.22.1・v22.23.4に更新してください（Node.js 20・25はサポート終了のため修正版なし）。</p>
+          <strong>Brotliの脆弱性「HTTP2Shell」に注意（Node.jsをはじめ多くの製品が内包）</strong>
+          <p>Brotliデコーダーの範囲外書き込みによるリモートコード実行（CVE-2026-111497、通称HTTP2Shell。HTTP/2自体の脆弱性ではありません）が、Node.jsのセキュリティリリースで修正されました。Brotliはブラウザ、Webサーバー、CDN、プロキシ、各種言語のランタイムやライブラリなど多くのソフトウェアに組み込まれているため、Node.jsを使っていなくても影響を受ける可能性があります。利用中の製品やライブラリのBrotli対応状況と更新情報を確認し、修正版が出ていれば適用してください。Node.jsはv26.12.1・v24.22.1・v22.23.4に更新してください（Node.js 20・25はサポート終了のため修正版なし）。</p>
           <a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases" target="_blank" rel="noopener">Node.js のお知らせ（10月21日）</a>
+          <a href="https://brandefense.io/blog/http2shell-brotli-cve-2026-111497/" target="_blank" rel="noopener">Brandefense: HTTP2Shell とスタック別の修正版（英語）</a>
         </li>
       </ul>
     </section>
