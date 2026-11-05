@@ -1,6 +1,6 @@
 (() => {
   const RANGE_START = "2026-04-06";
-  const RANGE_END = "2026-11-05";
+  const RANGE_END = "2026-11-06";
   const RB = "https://rocket-boys.co.jp/security-measures-lab/";
   const DOW = ["月", "", "水", "", "金", "", ""];
 
